@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LuxuryBeauty AI PRO</title>
+
+<!-- Fuente elegante -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* Body y fuente */
+body {
+    margin: 0;
+    font-family: 'Playfair Display', serif;
+    background: linear-gradient(135deg, #ffe6f0, #fff0f5);
+    color: #4b004b;
+    scroll-behavior: smooth;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 50px;
+    background-color: #ffb6c1;
+    align-items: center;
+    box-shadow: 0 5px 10px rgba(255,182,193,0.3);
+}
+header h1 { color: #b76e79; font-weight: 700; font-size: 28px; }
+nav a { color: #4b004b; text-decoration: none; margin-left: 20px; font-weight: bold; transition: 0.3s; }
+nav a:hover { color: #f7c06c; }
+
+/* Hero */
+.hero {
+    text-align: center;
+    padding: 100px 20px;
+    background: linear-gradient(to right, #ffc0cb, #ffdee9);
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+}
+.hero h2 { font-size: 42px; color: #b76e79; margin-bottom: 15px; }
+.hero p { font-size: 20px; margin-bottom: 25px; color: #4b004b; }
+button { padding: 12px 30px; background: #f7c06c; border: none; color: #4b004b; cursor: pointer; border-radius: 25px; font-weight: bold; font-size: 16px; transition: 0.3s; }
+button:hover { transform: scale(1.1); background: #ffb347; }
+
+/* Saldo elegante */
+#balance {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #b76e79;
+    padding: 15px 30px;
+    background: #fff0f5;
+    border: 2px solid #f7c06c;
+    border-radius: 25px;
+    display: inline-block;
+    box-shadow: 0 0 15px rgba(247,192,108,0.5);
+}
+
+/* Tarjetas de productos */
+.cards {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+    padding: 50px 20px;
+}
+.card {
+    background-color: #fff0f5;
+    border: 2px solid #f7c06c;
+    border-radius: 25px;
+    width: 260px;
+    padding: 25px;
+    text-align: center;
+    transition: 0.4s;
+    position: relative;
+}
+.card:hover { transform: translateY(-10px); box-shadow: 0 0 25px #f7c06c; }
+.card h3 { font-size: 22px; margin-bottom: 10px; color: #b76e79; }
+.card p { font-size: 18px; margin-bottom: 10px; color: #4b004b; }
+.card button { padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+/* Destello en precios subiendo */
+.flash {
+    animation: flash 0.6s;
+}
+@keyframes flash {
+    0% { background-color: #fff0f5; }
+    50% { background-color: #ffefc4; }
+    100% { background-color: #fff0f5; }
+}
+
+/* Dashboard gráfico */
+.stats { padding: 50px 20px; text-align: center; }
+.stats h2 { margin-bottom: 20px; }
+
+/* Footer */
+footer { text-align: center; padding: 20px; background-color: #ffb6c1; color: #4b004b; font-weight: bold; margin-top: 40px; border-top-left-radius: 30px; border-top-right-radius: 30px; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>LuxuryBeauty AI PRO</h1>
+    <nav>
+        <a href="#inicio">Inicio</a>
+        <a href="#marcas">Marcas</a>
+        <a href="#dashboard">Simulador</a>
+    </nav>
+</header>
+
+<section class="hero" id="inicio">
+    <h2>Invierte en tu belleza</h2>
+    <p>Simula compras de productos de maquillaje de lujo y observa los cambios de precios.</p>
+    <button>Comenzar a Simular</button>
+</section>
+
+<section class="stats" id="marcas">
+    <h2>Marcas Disponibles</h2>
+    <div id="balance">Saldo: $500</div>
+    <div class="cards" id="products"></div>
+</section>
+
+<section class="stats" id="dashboard">
+    <h2>Dashboard de Precios</h2>
+    <canvas id="beautyChart" width="600" height="300"></canvas>
+</section>
+
+<footer>
+    © 2026 LuxuryBeauty AI PRO | Proyecto Escolar
+</footer>
+
+<script>
+// Datos iniciales
+let balance = 500;
+const products = [
+    {name:'Dior Lipstick', price:50, lastPrice:50},
+    {name:'Chanel Eyeshadow', price:70, lastPrice:70},
+    {name:'YSL Blush', price:60, lastPrice:60},
+    {name:'Fenty Foundation', price:55, lastPrice:55},
+    {name:'MAC Lip Gloss', price:45, lastPrice:45}
+];
+
+// Crear tarjetas dinámicamente
+const productsDiv = document.getElementById('products');
+products.forEach((p,i)=>{
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = `<h3>${p.name}</h3>
+                      <p>Precio: $<span id="price${i}">${p.price}</span></p>
+                      <button onclick="buy(${i})">Comprar</button>`;
+    productsDiv.appendChild(card);
+});
+
+// Saldo
+const balanceDiv = document.getElementById('balance');
+function updateBalance(){ balanceDiv.textContent = `Saldo: $${balance}`; }
+
+// Comprar producto
+function buy(index){
+    let p = products[index];
+    if(balance >= p.price){
+        balance -= p.price;
+        alert(`Compraste ${p.name} por $${p.price}. Saldo restante: $${balance}`);
+        updateBalance();
+        updateChart(index,p.price,true);
+    } else { alert("Saldo insuficiente"); }
+}
+updateBalance();
+
+// Gráfico
+const ctx = document.getElementById('beautyChart').getContext('2d');
+const chartData = {
+    labels: products.map(p=>p.name),
+    datasets:[{
+        label:'Precio de productos ($)',
+        data: products.map(p=>p.price),
+        backgroundColor: ['#f7c06c','#ffb6c1','#f7c06c','#ffb6c1','#f7c06c'],
+        borderColor:'#b76e79',
+        borderWidth:2
+    }]
+};
+const beautyChart = new Chart(ctx,{
+    type:'bar',
+    data: chartData,
+    options:{
+        responsive:true,
+        plugins:{legend:{display:false}},
+        scales:{
+            y:{beginAtZero:true, ticks:{color:'#4b004b'}},
+            x:{ticks:{color:'#4b004b'}}
+        }
+    }
+});
+
+// Actualizar gráfico y animación
+function updateChart(index,newPrice,flash=false){
+    chartData.datasets[0].data[index] = newPrice;
+    beautyChart.update();
+    if(flash){
+        const priceSpan = document.getElementById(`price${index}`);
+        priceSpan.classList.add('flash');
+        setTimeout(()=>{priceSpan.classList.remove('flash');},600);
+    }
+}
+
+// Animación de precios aleatorios
+setInterval(()=>{
+    products.forEach((p,i)=>{
+        let change = Math.floor(Math.random()*11)-5; // -5 a +5
+        let newPrice = Math.max(10,p.price + change);
+        if(newPrice !== p.price){
+            updateChart(i,newPrice,true);
+        }
+        p.lastPrice = p.price;
+        p.price = newPrice;
+        document.getElementById(`price${i}`).textContent = p.price;
+    });
+},3000);
+</script>
+
+</body>
+</html>
